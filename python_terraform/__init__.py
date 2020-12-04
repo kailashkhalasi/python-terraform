@@ -320,12 +320,9 @@ class Terraform(object):
             log.warning('error: {e}'.format(e=err))
 
         self.temp_var_files.clean_up()
-        if capture_output is True:
-            out = out.decode('utf-8')
-            err = err.decode('utf-8')
-        else:
-            out = None
-            err = None
+        ## kailash edit
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
 
         if ret_code != 0 and raise_on_error:
             raise TerraformCommandError(
