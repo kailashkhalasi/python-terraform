@@ -304,8 +304,14 @@ class Terraform(object):
         if self.is_env_vars_included:
             environ_vars = os.environ.copy()
 
-        p = subprocess.Popen(cmds, stdout=stdout, stderr=stderr,
-                             cwd=working_folder, env=environ_vars)
+        with open('/tmp/tf.log', 'w') as tflog:
+            p = subprocess.Popen(cmds, stdout=stdout, stderr=stderr,
+                                 cwd=working_folder, env=environ_vars)
+            while p.poll() is None:
+                text = p.stdout.readline()
+                tflog.write(text.decode('utf-8'))
+                #we may also log to stdout in real-time
+                #sys.stdout.write(text.decode('utf-8'))
 
         if not synchronous:
             return p, None, None
@@ -320,9 +326,12 @@ class Terraform(object):
             log.warning('error: {e}'.format(e=err))
 
         self.temp_var_files.clean_up()
-        ## kailash edit
-        out = out.decode('utf-8')
-        err = err.decode('utf-8')
+        if capture_output is True:
+            out = out.decode('utf-8')
+            err = err.decode('utf-8')
+        else:
+            out = None
+            err = None
 
         if ret_code != 0 and raise_on_error:
             raise TerraformCommandError(
